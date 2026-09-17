@@ -1,28 +1,10 @@
 const interviewReportModel = require("../module/InterviewReport.module");
-const { pathToFileURL } = require("url");
-
-let pdfWorkerConfigured = false;
-
-function configurePdfWorker(PDFParse) {
-  if (pdfWorkerConfigured) return;
-
-  const { getPath } = require("pdf-parse/worker");
-  PDFParse.setWorker(pathToFileURL(getPath()).href);
-  pdfWorkerConfigured = true;
-}
 
 async function extractPdfText(buffer) {
-  const { PDFParse } = require("pdf-parse");
-  configurePdfWorker(PDFParse);
-
-  const parser = new PDFParse({ data: buffer });
-
-  try {
-    const result = await parser.getText();
-    return result.text;
-  } finally {
-    await parser.destroy();
-  }
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(new Uint8Array(buffer));
+  const { text } = await extractText(pdf, { mergePages: true });
+  return text;
 }
 
 async function generteInterviewReport(req, res) {
@@ -44,7 +26,7 @@ async function generteInterviewReport(req, res) {
     try {
       resumeText = await extractPdfText(req.file.buffer);
     } catch (error) {
-      console.error("PDF text extraction failed:", error);
+      console.error("PDF text extraction failed:", error); // full error object, not just .message
       return res.status(400).json({
         message: "The uploaded PDF could not be processed. Please upload a valid PDF with selectable text.",
         details: error.message,
@@ -93,7 +75,6 @@ async function generteInterviewReport(req, res) {
   }
 }
 
-
 async function getMyLatestReport(req, res) {
   try {
     const report = await interviewReportModel
@@ -113,7 +94,6 @@ async function getMyLatestReport(req, res) {
     res.status(500).json({ message: "Internal server error." });
   }
 }
-
 
 async function getLatestReport(req, res) {
   const { interviewId } = req.params;
@@ -138,7 +118,6 @@ async function getLatestReport(req, res) {
   }
 }
 
-
 async function AllInterviewReports(req, res) {
   try {
     const reports = await interviewReportModel
@@ -155,6 +134,5 @@ async function AllInterviewReports(req, res) {
     res.status(500).json({ message: "Internal server error." });
   }
 }
-
 
 module.exports = { generteInterviewReport, getLatestReport, getMyLatestReport, AllInterviewReports };
