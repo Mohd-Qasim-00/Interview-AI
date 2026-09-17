@@ -1,7 +1,20 @@
 const interviewReportModel = require("../module/InterviewReport.module");
+const { pathToFileURL } = require("url");
+
+let pdfWorkerConfigured = false;
+
+function configurePdfWorker(PDFParse) {
+  if (pdfWorkerConfigured) return;
+
+  const { getPath } = require("pdf-parse/worker");
+  PDFParse.setWorker(pathToFileURL(getPath()).href);
+  pdfWorkerConfigured = true;
+}
 
 async function extractPdfText(buffer) {
   const { PDFParse } = require("pdf-parse");
+  configurePdfWorker(PDFParse);
+
   const parser = new PDFParse({ data: buffer });
 
   try {
@@ -26,7 +39,16 @@ async function generteInterviewReport(req, res) {
       return res.status(400).json({ message: "selfDescription and jobDescription are required." });
     }
 
-    const resumeText = await extractPdfText(req.file.buffer);
+    let resumeText;
+
+    try {
+      resumeText = await extractPdfText(req.file.buffer);
+    } catch (error) {
+      console.error("PDF text extraction failed:", error);
+      return res.status(400).json({
+        message: "Could not read text from the uploaded resume PDF. Please upload a text-based PDF and try again.",
+      });
+    }
 
     if (!resumeText?.trim()) {
       return res.status(400).json({ message: "Could not read text from the uploaded resume PDF." });
