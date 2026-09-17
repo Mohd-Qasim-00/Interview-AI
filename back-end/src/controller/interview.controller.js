@@ -15,7 +15,7 @@ async function extractPdfText(buffer) {
   const { PDFParse } = require("pdf-parse");
   configurePdfWorker(PDFParse);
 
-  const parser = new PDFParse(req.file.buffer);
+  const parser = new PDFParse({ data: buffer });
 
   try {
     const result = await parser.getText();
@@ -46,12 +46,15 @@ async function generteInterviewReport(req, res) {
     } catch (error) {
       console.error("PDF text extraction failed:", error);
       return res.status(400).json({
-        message: "Could not read text from the uploaded resume PDF. Please upload a text-based PDF and try again.",
+        message: "The uploaded PDF could not be processed. Please upload a valid PDF with selectable text.",
+        details: error.message,
       });
     }
 
     if (!resumeText?.trim()) {
-      return res.status(400).json({ message: "Could not read text from the uploaded resume PDF." });
+      return res.status(400).json({
+        message: "This PDF has no selectable text. Please upload a text-based resume PDF, not a scanned image PDF.",
+      });
     }
 
     let InterviewReportAi;

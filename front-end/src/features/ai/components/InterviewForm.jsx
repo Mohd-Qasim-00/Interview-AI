@@ -96,7 +96,7 @@ const InterviewForm = () => {
             onChange={(e) => setResume(e.target.files[0] || null)}
             required disabled={isGenerating}
           />
-          <small>{resume ? resume.name : "Only PDF files are allowed."}</small>
+          <small>{resume ? resume.name : "Upload a PDF with selectable text. Scanned image PDFs are not supported."}</small>
         </label>
 
         <label className={style.fieldGroup} htmlFor="selfDescription">
