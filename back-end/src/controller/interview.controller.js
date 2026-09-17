@@ -15,7 +15,7 @@ async function extractPdfText(buffer) {
   const { PDFParse } = require("pdf-parse");
   configurePdfWorker(PDFParse);
 
-  const parser = new PDFParse({ data: buffer });
+  const parser = new PDFParse(req.file.buffer);
 
   try {
     const result = await parser.getText();
