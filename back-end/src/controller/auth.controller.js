@@ -35,7 +35,11 @@ async function regesterUser(req ,res){
 
   const token=jwt.sign({id:user._id,username:user.username},config.jwtSecret,{expiresIn:'1h'});
 
-res.cookie('token',token);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
 
 return res.status(201).json({message: 'User registered successfully',
   user:{
@@ -69,7 +73,11 @@ if(!isMatch){
 
 const token=jwt.sign({id:user._id,username:user.username},config.jwtSecret,{expiresIn:'1h'});
 
-res.cookie('token',token);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
 
 console.log("User logged in:", { id: user._id, username: user.username, email: user.email });
 
