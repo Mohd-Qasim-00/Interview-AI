@@ -1,15 +1,18 @@
-const dotenv= require('dotenv').config();
+require("dotenv").config();
 
-const app =require('./src/app');
+const app = require("./src/app");
+const config = require("./src/config/config");
+const connectDB = require("./src/config/databse");
 
-const generateInterviewReport=require('./src/services/ai.service');
+async function startServer() {
+  await connectDB();
 
-const dns=require('dns');
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  app.listen(config.port, () => {
+    console.log(`Server is running on port ${config.port}`);
+  });
+}
 
-const connectDB=require('./src/config/databse')
-connectDB();
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });

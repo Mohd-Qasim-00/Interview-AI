@@ -9,6 +9,12 @@ const jwt=require('jsonwebtoken');
 
 const cookieParser = require('cookie-parser');
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+};
+
 async function regesterUser(req ,res){
 
   const {username,email,password}=req.body;
@@ -35,11 +41,7 @@ async function regesterUser(req ,res){
 
   const token=jwt.sign({id:user._id,username:user.username},config.jwtSecret,{expiresIn:'1h'});
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  });
+  res.cookie('token', token, cookieOptions);
 
 return res.status(201).json({message: 'User registered successfully',
   user:{
@@ -73,11 +75,7 @@ if(!isMatch){
 
 const token=jwt.sign({id:user._id,username:user.username},config.jwtSecret,{expiresIn:'1h'});
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  });
+  res.cookie('token', token, cookieOptions);
 
 console.log("User logged in:", { id: user._id, username: user.username, email: user.email });
 
@@ -101,7 +99,7 @@ async function logoutUser(req,res){
     await tokenBlacklist.create({token});
 
   }
- res.clearCookie('token');
+ res.clearCookie('token', cookieOptions);
  return res.status(200).json({message: 'User logged out successfully'});
 
 }
