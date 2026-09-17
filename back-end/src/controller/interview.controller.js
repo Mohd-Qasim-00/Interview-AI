@@ -32,14 +32,19 @@ async function generteInterviewReport(req, res) {
       return res.status(400).json({ message: "Could not read text from the uploaded resume PDF." });
     }
 
-    const InterviewReportAi = await generateInterviewReport({
-      resume: resumeText,
-      selfDescription,
-      jobDescription,
-    });
+    let InterviewReportAi;
 
-    if (!InterviewReportAi) {
-      return res.status(500).json({ message: "AI failed to generate the report. Please try again." });
+    try {
+      InterviewReportAi = await generateInterviewReport({
+        resume: resumeText,
+        selfDescription,
+        jobDescription,
+      });
+    } catch (error) {
+      console.error("AI failed to generate interview report:", error);
+      return res.status(502).json({
+        message: "AI service failed to generate the report. Please check GOOGLE_API_KEY/GEMINI_MODEL in Vercel and try again.",
+      });
     }
 
     const interviewReport = await interviewReportModel.create({

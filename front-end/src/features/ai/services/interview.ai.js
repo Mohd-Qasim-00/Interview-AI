@@ -1,10 +1,21 @@
 import axios from "axios";
 import { API_BASE_URL } from "../../../config/api";
+import { getAuthToken } from "../../../config/authToken";
 
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api/interview`,
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
 });
 
 
@@ -14,11 +25,7 @@ export async function generateInterviewReport({ selfDescription, jobDescription,
   formData.append("jobDescription", jobDescription);
   formData.append("resume", resumeFile);
 
-  const response = await api.post("/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await api.post("/", formData);
 
   return response.data;
 }

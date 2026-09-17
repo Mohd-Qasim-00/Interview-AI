@@ -7,7 +7,9 @@ const connectDB=require('../config/databse');
 
 
 const authenticateToken = async (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token = req.cookies.token || bearerToken;
 
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });

@@ -85,7 +85,8 @@ return res.status(200).json({message: 'User logged in successfully',
     id:user._id,
     username:user.username,
     email:user.email,
-  }
+  },
+  token:token
 });
 
 
@@ -94,7 +95,9 @@ return res.status(200).json({message: 'User logged in successfully',
 }
 
 async function logoutUser(req,res){
-  const token=req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token=req.cookies.token || bearerToken;
 
   if(token){
     await connectDB();

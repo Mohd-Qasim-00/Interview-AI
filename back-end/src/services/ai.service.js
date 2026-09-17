@@ -296,7 +296,7 @@ Do not return any text outside the JSON.
 
         const response = await getAiClient().models.generateContent({
 
-            model: "gemini-3.5-flash-lite",
+            model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
 
             contents: prompt,
 
@@ -310,6 +310,10 @@ Do not return any text outside the JSON.
 
 
        
+
+       if (!response.text) {
+            throw new Error("Gemini returned an empty response");
+       }
 
        const parsedReport = JSON.parse(response.text);
 
@@ -331,7 +335,7 @@ Do not return any text outside the JSON.
             error.message
         );
 
-        return null;
+        throw error;
     }
 }
 
