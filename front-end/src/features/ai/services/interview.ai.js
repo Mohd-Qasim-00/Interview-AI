@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const api = axios.create({
-  baseURL: "back-end-nine-plum.vercel.app/api/interview",
+  baseURL: "https://back-end-nine-plum.vercel.app/api/interview",
   withCredentials: true,
 });
 

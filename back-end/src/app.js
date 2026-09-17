@@ -18,7 +18,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(cors({
-  origin: "interview-ai-kappa-dun.vercel.app",
+  origin: "https://interview-ai-kappa-dun.vercel.app",
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 

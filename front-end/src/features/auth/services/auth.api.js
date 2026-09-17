@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: "back-end-nine-plum.vercel.app/api/auth",
+  baseURL: "https://back-end-nine-plum.vercel.app/api/auth",
   withCredentials: true,
 })
 
