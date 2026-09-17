@@ -3,6 +3,7 @@ require('dotenv').config();
 const config=require('../config/config');
 
 const tokenBlacklist=require('../module/blacklist.module');
+const connectDB=require('../config/databse');
 
 
 const authenticateToken = async (req, res, next) => {
@@ -11,6 +12,8 @@ const authenticateToken = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
+
+  await connectDB();
   
 const blacklistedToken = await tokenBlacklist.findOne({ token });
   if (blacklistedToken) {

@@ -57,7 +57,10 @@ const handleLogout = async () => {
         const userData = await getMe();
         setUser(userData.user);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        if (error?.response?.status !== 401) {
+          console.error("Error fetching user data:", error);
+        }
+        setUser(null);
       } finally {
         setLoading(false);
       }

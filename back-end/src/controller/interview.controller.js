@@ -1,17 +1,24 @@
 const interviewReportModel = require("../module/InterviewReport.module");
 
+async function extractPdfText(buffer) {
+  const { PDFParse } = require("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+
+  try {
+    const result = await parser.getText();
+    return result.text;
+  } finally {
+    await parser.destroy();
+  }
+}
 
 async function generteInterviewReport(req, res) {
   try {
-    const pdfParse = require("pdf-parse");
     const generateInterviewReport = require("../services/ai.service");
 
     if (!req.file) {
       return res.status(400).json({ message: "Resume PDF is required." });
     }
-
-    // pdf-parse v2: call as a function with the buffer directly
-    const resumeContent = await pdfParse(req.file.buffer);
 
     const { selfDescription, jobDescription } = req.body;
 
@@ -19,8 +26,14 @@ async function generteInterviewReport(req, res) {
       return res.status(400).json({ message: "selfDescription and jobDescription are required." });
     }
 
+    const resumeText = await extractPdfText(req.file.buffer);
+
+    if (!resumeText?.trim()) {
+      return res.status(400).json({ message: "Could not read text from the uploaded resume PDF." });
+    }
+
     const InterviewReportAi = await generateInterviewReport({
-      resume: resumeContent.text,
+      resume: resumeText,
       selfDescription,
       jobDescription,
     });
@@ -31,7 +44,7 @@ async function generteInterviewReport(req, res) {
 
     const interviewReport = await interviewReportModel.create({
       userId: req.user.id,
-      resume: resumeContent.text,
+      resume: resumeText,
       selfDescription,
       jobDescription,
       ...InterviewReportAi,
@@ -43,7 +56,10 @@ async function generteInterviewReport(req, res) {
     });
   } catch (error) {
     console.error("Error generating interview report:", error);
-    res.status(500).json({ message: "Internal server error. Please try again." });
+    res.status(500).json({
+      message: "Internal server error. Please try again.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message,
+    });
   }
 }
 

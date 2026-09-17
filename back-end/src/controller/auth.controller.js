@@ -8,6 +8,7 @@ const tokenBlacklist=require('../module/blacklist.module');
 const jwt=require('jsonwebtoken');
 
 const cookieParser = require('cookie-parser');
+const connectDB=require('../config/databse');
 
 const cookieOptions = {
   httpOnly: true,
@@ -96,6 +97,7 @@ async function logoutUser(req,res){
   const token=req.cookies.token;
 
   if(token){
+    await connectDB();
     await tokenBlacklist.create({token});
 
   }

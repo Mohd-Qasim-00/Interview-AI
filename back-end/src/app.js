@@ -4,7 +4,6 @@ const cors = require("cors");
 
 const authRouter = require("./routes/auth.route");
 const interviewRouter = require("./routes/interview.routes");
-const connectDB = require("./config/databse");
 
 const app = express();
 
@@ -45,21 +44,20 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api", async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
 app.use("/api/auth", authRouter);
 app.use("/api/interview", interviewRouter);
 
 app.use((error, req, res, next) => {
   console.error(error);
-  res.status(500).json({ message: "Internal server error" });
+
+  if (error.name === "MulterError" || error.message === "Only PDF files are allowed.") {
+    return res.status(400).json({ message: error.message });
+  }
+
+  res.status(500).json({
+    message: "Internal server error",
+    error: process.env.NODE_ENV === "production" ? undefined : error.message,
+  });
 });
 
 module.exports = app;
