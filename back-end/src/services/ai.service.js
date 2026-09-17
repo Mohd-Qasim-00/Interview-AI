@@ -221,6 +221,10 @@ async function generateInterviewReport({
     selfDescription,
     jobDescription
 }) {
+    const configuredModel = process.env.GEMINI_MODEL;
+    const model = configuredModel === "gemini-2.5-flash-lite"
+        ? "gemini-3.5-flash-lite"
+        : configuredModel || "gemini-3.5-flash-lite";
 
     const prompt = `
 
@@ -296,7 +300,7 @@ Do not return any text outside the JSON.
 
         const response = await getAiClient().models.generateContent({
 
-            model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+            model,
 
             contents: prompt,
 
