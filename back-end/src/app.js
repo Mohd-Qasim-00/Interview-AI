@@ -1,13 +1,10 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const dns = require("dns");
 
 const authRouter = require("./routes/auth.route");
 const interviewRouter = require("./routes/interview.routes");
 const connectDB = require("./config/databse");
-
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const app = express();
 

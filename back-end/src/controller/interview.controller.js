@@ -1,10 +1,11 @@
-const pdfParse = require("pdf-parse");
-const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../module/InterviewReport.module");
 
 
 async function generteInterviewReport(req, res) {
   try {
+    const pdfParse = require("pdf-parse");
+    const generateInterviewReport = require("../services/ai.service");
+
     if (!req.file) {
       return res.status(400).json({ message: "Resume PDF is required." });
     }

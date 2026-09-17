@@ -1,10 +1,21 @@
 const { GoogleGenAI, Type } = require("@google/genai");
 const z = require("zod");
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_API_KEY
-});
+let ai;
 
+function getAiClient() {
+    if (!process.env.GOOGLE_API_KEY) {
+        throw new Error("GOOGLE_API_KEY is not defined in the environment variables");
+    }
+
+    if (!ai) {
+        ai = new GoogleGenAI({
+            apiKey: process.env.GOOGLE_API_KEY
+        });
+    }
+
+    return ai;
+}
 
 // ============================================================
 // ZOD VALIDATION SCHEMA
@@ -283,7 +294,7 @@ Do not return any text outside the JSON.
         // GEMINI REQUEST
         // ====================================================
 
-        const response = await ai.models.generateContent({
+        const response = await getAiClient().models.generateContent({
 
             model: "gemini-3.5-flash-lite",
 
