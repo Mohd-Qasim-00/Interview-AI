@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/interview",
+  baseURL: "back-end-nine-plum.vercel.app/api/interview",
   withCredentials: true,
 });
 
@@ -38,4 +38,4 @@ export async function getLatestReport(interviewId) {
 export async function getAllInterviewReports() {
   const response = await api.get("/");
   return response.data;
-}
+}
