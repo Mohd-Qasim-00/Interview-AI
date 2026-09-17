@@ -1,17 +1,37 @@
 const interviewReportModel = require("../module/InterviewReport.module");
+const { pathToFileURL } = require("url");
 
+let pdfWorkerConfigured = false;
+
+function configurePdfWorker(PDFParse) {
+  if (pdfWorkerConfigured) return;
+
+  const { getPath } = require("pdf-parse/worker");
+  PDFParse.setWorker(pathToFileURL(getPath()).href);
+  pdfWorkerConfigured = true;
+}
+
+async function extractPdfText(buffer) {
+  const { PDFParse } = require("pdf-parse");
+  configurePdfWorker(PDFParse);
+
+  const parser = new PDFParse({ data: buffer });
+
+  try {
+    const result = await parser.getText();
+    return result.text;
+  } finally {
+    await parser.destroy();
+  }
+}
 
 async function generteInterviewReport(req, res) {
   try {
-    const pdfParse = require("pdf-parse");
     const generateInterviewReport = require("../services/ai.service");
 
     if (!req.file) {
       return res.status(400).json({ message: "Resume PDF is required." });
     }
-
-    // pdf-parse v2: call as a function with the buffer directly
-    const resumeContent = await pdfParse(req.file.buffer);
 
     const { selfDescription, jobDescription } = req.body;
 
@@ -19,31 +39,54 @@ async function generteInterviewReport(req, res) {
       return res.status(400).json({ message: "selfDescription and jobDescription are required." });
     }
 
-    const InterviewReportAi = await generateInterviewReport({
-      resume: resumeContent.text,
-      selfDescription,
-      jobDescription,
-    });
+    let resumeText;
 
-    if (!InterviewReportAi) {
-      return res.status(500).json({ message: "AI failed to generate the report. Please try again." });
+    try {
+      resumeText = await extractPdfText(req.file.buffer);
+    } catch (error) {
+      console.error("PDF text extraction failed:", error);
+      return res.status(400).json({
+        message: "Could not read text from the uploaded resume PDF. Please upload a text-based PDF and try again.",
+      });
+    }
+
+    if (!resumeText?.trim()) {
+      return res.status(400).json({ message: "Could not read text from the uploaded resume PDF." });
+    }
+
+    let InterviewReportAi;
+
+    try {
+      InterviewReportAi = await generateInterviewReport({
+        resume: resumeText,
+        selfDescription,
+        jobDescription,
+      });
+    } catch (error) {
+      console.error("AI failed to generate interview report:", error);
+      return res.status(502).json({
+        message: "AI service failed to generate the report. Please check GOOGLE_API_KEY/GEMINI_MODEL in Vercel and try again.",
+      });
     }
 
     const interviewReport = await interviewReportModel.create({
       userId: req.user.id,
-      resume: resumeContent.text,
+      resume: resumeText,
       selfDescription,
       jobDescription,
       ...InterviewReportAi,
     });
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Interview report generated successfully",
       interviewReport,
     });
   } catch (error) {
     console.error("Error generating interview report:", error);
-    res.status(500).json({ message: "Internal server error. Please try again." });
+    res.status(500).json({
+      message: "Internal server error. Please try again.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message,
+    });
   }
 }
 
