@@ -296,7 +296,7 @@ Do not return any text outside the JSON.
 
         const response = await getAiClient().models.generateContent({
 
-            model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+            model:  "gemini-2.5-flash-lite",
 
             contents: prompt,
 
