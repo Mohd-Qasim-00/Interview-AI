@@ -55,7 +55,7 @@ async function generteInterviewReport(req, res) {
       ...InterviewReportAi,
     });
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Interview report generated successfully",
       interviewReport,
     });
